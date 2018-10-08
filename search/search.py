@@ -145,12 +145,9 @@ def breadthFirstSearch(problem):
     successors = problem.getSuccessors(problem.getStartState())
 
     path_actions = dict()
-    form_path = dict()
 
     for ea in successors:
         search_queue.push(ea)
-        path_actions[ea[0]] = ea
-        form_path[ea[0]] = problem.getStartState()
 
     find_goal = False
 
@@ -169,16 +166,15 @@ def breadthFirstSearch(problem):
 
             for ea in choice_successors:
                 search_queue.push(ea)
-                path_actions[ea[0]] = ea
-                form_path[ea[0]] = node[0]
+                path_actions[ea[0]] = node
 
         else:
             path = []
             while node and not problem.getStartState() == node[0]:
                 if node:
                     path.append(node[1])
-                if path_actions.has_key(form_path[node[0]]):
-                    node = path_actions[form_path[node[0]]]
+                if path_actions.has_key(node[0]):
+                    node = path_actions[node[0]]
                 else:
                     break
             path.reverse()
