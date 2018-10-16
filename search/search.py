@@ -140,23 +140,46 @@ def breadthFirstSearch(problem):
     """Search the shallowest nodes in the search tree first."""
     "*** YOUR CODE HERE ***"
 
-    visited_pos = []
+    search_struct = util.Queue()
+    successors = problem.getSuccessors(problem.getStartState())
 
-    def search(point):
-        if problem.isGoalState(point):
-            return True, []
-        if point in visited_pos:
-            return False, []
-        visited_pos.append(point)
-        successors = problem.getSuccessors(point)
-        for s in successors:
-            r, a = search(s[0])
-            if r:
-                return True, [s[1]] + a
-        return False, []
+    path_actions = {}
 
-    r, p = search(problem.getStartState())
-    return p
+    for ea in successors:
+        search_struct.push(ea)
+
+    find_goal = False
+
+    visited_pos = set()
+    visited_pos.add(problem.getStartState())
+
+    # 开始遍历：如果栈不空，且没有到达目标结点(请填充如下两个条件)：
+    while (not search_struct.isEmpty()) and (not find_goal):
+        choice = search_struct.pop()
+        if not problem.isGoalState(choice[0]):
+            # 如果该节点没被访问
+            if not choice[0] in visited_pos:
+                visited_pos.add(choice[0])
+            # filter的意思是对sequence中的所有item依次执行 function(item)
+            choice_successors = filter(lambda v: v[0] not in visited_pos, problem.getSuccessors(choice[0]))
+
+            for ea in choice_successors:
+                search_struct.push(ea)
+                path_actions[ea[0]] = choice
+
+        else:
+            path = []
+            while choice and not problem.getStartState() == choice[0]:
+                if choice:
+                    path.append(choice[1])
+                if path_actions.has_key(choice[0]):
+                    choice = path_actions[choice[0]]
+                else:
+                    break
+            path.reverse()
+            find_goal = True
+
+    return path
 
     # util.raiseNotDefined()
 
@@ -164,7 +187,57 @@ def breadthFirstSearch(problem):
 def uniformCostSearch(problem):
     """Search the node of least total cost first."""
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+
+    def add_to_tuple(tuple_added, item):
+        t = list(tuple_added)
+        t.append(item)
+        return tuple(t)
+
+    search_struct = util.PriorityQueue()
+    successors = problem.getSuccessors(problem.getStartState())
+
+    path_actions = {}
+
+    for ea in successors:
+        t = add_to_tuple(ea, ea[2])
+        search_struct.push(t, ea[2])
+
+    find_goal = False
+
+    visited_pos = set()
+    visited_pos.add(problem.getStartState())
+
+    # 开始遍历：如果栈不空，且没有到达目标结点(请填充如下两个条件)：
+    while (not search_struct.isEmpty()) and (not find_goal):
+        choice = search_struct.pop()
+        if not problem.isGoalState(choice[0]):
+            # 如果该节点没被访问
+            if not choice[0] in visited_pos:
+                visited_pos.add(choice[0])
+            # filter的意思是对sequence中的所有item依次执行 function(item)
+            choice_successors = filter(lambda v: v[0] not in visited_pos, problem.getSuccessors(choice[0]))
+
+            for ea in choice_successors:
+                cost = choice[3] + ea[2]
+                new_tuple = add_to_tuple(ea, cost)
+                search_struct.push(new_tuple, cost)
+                path_actions[ea[0]] = choice
+
+        else:
+            path = []
+            while choice and not problem.getStartState() == choice[0]:
+                if choice:
+                    path.append(choice[1])
+                if path_actions.has_key(choice[0]):
+                    choice = path_actions[choice[0]]
+                else:
+                    break
+            path.reverse()
+            find_goal = True
+
+    return path
+
+    # util.raiseNotDefined()
 
 
 def nullHeuristic(state, problem=None):
